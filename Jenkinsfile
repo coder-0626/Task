@@ -21,8 +21,8 @@ pipeline {
             steps {
                 script {
                     // Stop and remove any existing container
-                    sh 'docker stop static-web-container || true'
-                    sh 'docker rm static-web-container || true'
+                    bat 'docker stop static-web-container || true'
+                    bat 'docker rm static-web-container || true'
                     
                     // Run new container
                     dockerImage.run("--name static-web-container -p 80:80 -d")
@@ -35,7 +35,7 @@ pipeline {
         always {
             echo 'Cleaning up...'
             // Clean up unused docker images
-            sh 'docker system prune -f'
+            bat 'docker system prune -f'
         }
     }
 }
