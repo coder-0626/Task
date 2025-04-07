@@ -1,51 +1,41 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub-cred') // Jenkins stored credentials
-        IMAGE_NAME = 'nginx'  // Update with your Docker Hub repo
-        IMAGE_TAG = 'latest'
-    }
-
+    
     stages {
-        stage('Checkout Source Code') {
+        stage('Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/coder-0626/Task.git'
+                git branch: 'main', 
+                url: 'https://github.com/coder-0626/Task.git'
             }
         }
-
+        
         stage('Build Docker Image') {
             steps {
                 script {
-                    bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    dockerImage = docker.build("static-web:${env.BUILD_ID}")
                 }
             }
         }
-
-        stage('Push to Docker Hub') {
+        
+        stage('Run Container') {
             steps {
                 script {
-                    bat "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
-                    bat "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                }
-            }
-        }
-
-        stage('Run Nginx Container in Background') {
-            steps {
-                script {
-                    bat "docker run -d --name nginx-server -p 80:80 ${IMAGE_NAME}:${IMAGE_TAG}"
+                    // Stop and remove any existing container
+                    sh 'docker stop static-web-container || true'
+                    sh 'docker rm static-web-container || true'
+                    
+                    // Run new container
+                    dockerImage.run("--name static-web-container -p 80:80 -d")
                 }
             }
         }
     }
-
+    
     post {
-        success {
-            echo "Nginx container is running on port 80!"
-        }
-        failure {
-            echo "Pipeline failed!"
+        always {
+            echo 'Cleaning up...'
+            // Clean up unused docker images
+            sh 'docker system prune -f'
         }
     }
 }
