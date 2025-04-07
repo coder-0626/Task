@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub-creds') // Jenkins stored credentials
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub-cred') // Jenkins stored credentials
         IMAGE_NAME = 'nginx'  // Update with your Docker Hub repo
         IMAGE_TAG = 'latest'
     }
